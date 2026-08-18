@@ -1,16 +1,15 @@
 <?php
-require_once 'Personne.php';
+require_once __DIR__ . '/Personne.php';
+
+if (!class_exists('Database')) {
+    require_once __DIR__ . '/../config/Database.php';
+}
 
 class PersonneRepository {
     private PDO $db;
-    private string $uploadDir = 'uploads/';
 
     public function __construct() {
         $this->db = Database::getInstance()->getConnection();
-        // Créer le dossier s'il n'existe pas
-        if (!file_exists($this->uploadDir)) {
-            mkdir($this->uploadDir, 0777, true);
-        }
     }
 
     // Récupérer toutes les personnes
@@ -23,7 +22,7 @@ class PersonneRepository {
             $personnes[] = new Personne(
                 $row['nom'],
                 $row['prenom'],
-                $row['chemin_image'],
+                $row['image_data'], 
                 $row['id']
             );
         }
@@ -32,52 +31,49 @@ class PersonneRepository {
 
     // Créer une nouvelle personne
     public function create(string $nom, string $prenom, ?array $file): bool {
-        // Appel à la méthode d'upload
-        $cheminImage = $this->handleUpload($file);
+        // Appel à la nouvelle méthode d'encodage
+        $imageData = $this->handleImageEncoding($file);
 
-        $stmt = $this->db->prepare("INSERT INTO personnes (nom, prenom, chemin_image) VALUES (:nom, :prenom, :image)");
+        // On insère dans la colonne 'image_data'
+        $stmt = $this->db->prepare("INSERT INTO personnes (nom, prenom, image_data) VALUES (:nom, :prenom, :image)");
         return $stmt->execute([
             ':nom' => $nom,
             ':prenom' => $prenom,
-            ':image' => $cheminImage
+            ':image' => $imageData // On envoie directement la chaîne Base64
         ]);
     }
 
     // ---------------------------------------------------------
-    // LA MÉTHODE D'UPLOAD D'IMAGE DEMANDÉE
+    // LA NOUVELLE MÉTHODE D'UPLOAD (Directement dans la BDD)
     // ---------------------------------------------------------
-    private function handleUpload(?array $file): string {
-        $defaultPath = 'uploads/default.png'; // Image par défaut
+    private function handleImageEncoding(?array $file): string {
+        // 1. Image par défaut encodée en Base64 (Petit carré gris)
+        $defaultBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5QoHDBUNBqHnPQAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAYklEQVRYw+3XsQ2AIBQF0UtpXYVd2ISN2MRN2IQxKqLwHjzKxEAsfbk5WX5uxwAAAAASUVORK5CYII=';
 
-        // Si aucun fichier n'est envoyé ou s'il y a une erreur
+        // Étape 1 : Vérifier si un fichier est bien envoyé
         if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
-            return $defaultPath;
+            return $defaultBase64;
         }
 
-        // Vérification du type MIME
+        // Étape 2 : Vérification du type MIME (Sécurité)
         $fileType = mime_content_type($file['tmp_name']);
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
         if (!in_array($fileType, $allowedTypes)) {
-            return $defaultPath; // Type interdit, on retourne l'image par défaut
+            return $defaultBase64; // Type interdit
         }
 
-        // Vérification de la taille (2 Mo max)
+        // Étape 3 : Vérification de la taille (2 Mo max)
         if ($file['size'] > 2 * 1024 * 1024) {
-            return $defaultPath; // Trop gros
+            return $defaultBase64; // Trop gros
         }
 
-        // Génération d'un nom unique
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $newFileName = uniqid('img_', true) . '.' . $extension;
-        $targetFilePath = $this->uploadDir . $newFileName;
+        // Étape 4 : Lire le fichier, l'encoder en Base64 et le formater pour le HTML
+        $fileContent = file_get_contents($file['tmp_name']);
+        $base64 = base64_encode($fileContent);
 
-        // Déplacement physique du fichier
-        if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
-            return $targetFilePath;
-        }
-
-        return $defaultPath;
+        // Retourner la chaîne prête pour la balise <img> et la BDD
+        return 'data:' . $fileType . ';base64,' . $base64;
     }
 }
 ?>
