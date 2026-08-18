@@ -22,7 +22,7 @@
                     <span class="text-xl font-bold text-slate-800 tracking-tight">Gestion des personnes</span>
                 </div>
                 
-                <!-- Bouton Ajouter (Corrigé vers /create) -->
+                <!-- Bouton Ajouter -->
                 <a href="/create" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
                     <i class="fa-solid fa-plus"></i> Ajouter une personne
                 </a>
@@ -32,8 +32,8 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <!-- 2. STATISTIQUES RAPIDES (Pour un effet pro) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- 2. STATISTIQUES RAPIDES (Suppression de la ligne qui posait problème) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
                 <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-xl">
                     <i class="fa-solid fa-user"></i>
@@ -41,17 +41,6 @@
                 <div>
                     <p class="text-sm text-slate-500 font-medium">Total membres</p>
                     <p class="text-2xl font-bold text-slate-800"><?= count($personnes) ?></p>
-                </div>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
-                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-image"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-slate-500 font-medium">Photos uploadées</p>
-                    <p class="text-2xl font-bold text-slate-800">
-                        <?= count(array_filter($personnes, fn($p) => strpos($p->getImageData(), 'data:image') === 0 && $p->getImageData() !== 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5QoHDBUNBqHnPQAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAYklEQVRYw+3XsQ2AIBQF0UtpXYVd2ISN2MRN2IQxKqLwHjzKxEAsfbk5WX5uxwAAAAASUVORK5CYII=') ?>
-                    </p>
                 </div>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
@@ -65,18 +54,16 @@
             </div>
         </div>
 
-        <!-- 3. GRILLE DE CARTES (Remplace le tableau) -->
+        <!-- 3. GRILLE DE CARTES -->
         <?php if (count($personnes) > 0): ?>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 <?php foreach ($personnes as $p): ?>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group">
                     <!-- Zone image -->
                     <div class="relative h-48 w-full bg-slate-100 flex items-center justify-center overflow-hidden">
-                        <!-- CORRECTION ICI : On utilise getImageData() -->
                         <img src="<?= htmlspecialchars($p->getImageData()) ?>" 
                              alt="<?= htmlspecialchars($p->getPrenom()) ?>" 
                              class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        <!-- Badge ID sur l'image -->
                         <div class="absolute top-3 right-3 bg-black/60 text-white text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm">
                             #<?= $p->getId() ?>
                         </div>
