@@ -49,7 +49,9 @@
                 </div>
                 <div>
                     <p class="text-sm text-slate-500 font-medium">Photos uploadées</p>
-                    <p class="text-2xl font-bold text-slate-800"><?= count(array_filter($personnes, fn($p) => $p->getCheminImage() !== 'uploads/default.png')) ?></p>
+                    <p class="text-2xl font-bold text-slate-800">
+                        <?= count(array_filter($personnes, fn($p) => strpos($p->getImageData(), 'data:image') === 0 && $p->getImageData() !== 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5QoHDBUNBqHnPQAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAYklEQVRYw+3XsQ2AIBQF0UtpXYVd2ISN2MRN2IQxKqLwHjzKxEAsfbk5WX5uxwAAAAASUVORK5CYII=') ?>
+                    </p>
                 </div>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
@@ -70,7 +72,8 @@
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group">
                     <!-- Zone image -->
                     <div class="relative h-48 w-full bg-slate-100 flex items-center justify-center overflow-hidden">
-                        <img src="<?= htmlspecialchars($p->getCheminImage()) ?>" 
+                        <!-- CORRECTION ICI : On utilise getImageData() -->
+                        <img src="<?= htmlspecialchars($p->getImageData()) ?>" 
                              alt="<?= htmlspecialchars($p->getPrenom()) ?>" 
                              class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500">
                         <!-- Badge ID sur l'image -->
