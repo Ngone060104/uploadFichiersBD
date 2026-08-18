@@ -29,6 +29,18 @@ class PersonneController {
                 $errors['prenom'] = "Le champ Prénom est obligatoire.";
             }
 
+             // Validation de l'image (Si une image a été envoyée mais qu'elle est invalide)
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $fileType = mime_content_type($_FILES['image']['tmp_name']);
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                
+                if (!in_array($fileType, $allowedTypes)) {
+                    $errors['image'] = "Type de fichier non autorisé (PNG, JPG, WEBP uniquement).";
+                } elseif ($_FILES['image']['size'] > 2 * 1024 * 1024) {
+                    $errors['image'] = "Le fichier est trop volumineux (Max 2 Mo).";
+                }
+            }
+
             // Si aucune erreur, on enregistre
             if (empty($errors)) {
                 $success = $this->repo->create($nom, $prenom, $_FILES['image'] ?? null);
